@@ -1,0 +1,9 @@
+adafruit_bitmap_font
+adafruit_display_shapes
+adafruit_display_text
+adafruit_imageload
+adafruit_pybadger
+adafruit_displayio_ssd1306.mpy
+adafruit_lis3dh.mpy
+adafruit_miniqr.mpy
+neopixel.mpy

@@ -1,0 +1,77 @@
+name: Compile and Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python environment
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'  # Use an appropriate Python version
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install huffman
+
+    - name: Install mpy-cross
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libffi-dev
+        git clone https://github.com/adafruit/circuitpython.git
+        cd circuitpython/mpy-cross
+        make
+
+    - name: Compile Python files to .mpy
+      run: |
+        mkdir -p compiled/components
+        mkdir -p compiled/lib
+        mkdir -p compiled/utils
+        for file in components/*.py; do ./circuitpython/mpy-cross/build/mpy-cross "$file" -o "compiled/components/$(basename "$file" .py).mpy"; done
+        for file in utils/*.py; do ./circuitpython/mpy-cross/build/mpy-cross "$file" -o "compiled/utils/$(basename "$file" .py).mpy"; done
+        ./circuitpython/mpy-cross/build/mpy-cross game.py -o compiled/game.mpy
+
+    - name: Copy images folder
+      run: |
+        cp -r images compiled/images
+
+    - name: Copy main.py to compiled directory
+      run: cp main.py compiled/main.py
+
+    - name: Zip compiled files and images folder
+      run: |
+        zip -r ../CheckoutChallenge.zip *
+      working-directory: compiled
+
+    - name: Get current date and time
+      id: get-date
+      run: echo "date=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: CheckoutChallenge.zip
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ env.date }}
+        name: Release ${{ env.date }}
+        body: |
+          Compiled files and images for manual release.
+          - components/*.mpy
+          - utils/*.mpy
+          - game.mpy
+          - images/*
+        draft: false
+        prerelease: false
