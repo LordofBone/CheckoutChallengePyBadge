@@ -40,9 +40,9 @@ jobs:
         mkdir -p compiled/components
         mkdir -p compiled/lib
         mkdir -p compiled/utils
-        for file in components/*.py; do ./circuitpython/mpy-cross/build/mpy-cross "$file" -o "compiled/components/$(basename "$file" .py).mpy"; done
-        for file in utils/*.py; do ./circuitpython/mpy-cross/build/mpy-cross "$file" -o "compiled/utils/$(basename "$file" .py).mpy"; done
-        ./circuitpython/mpy-cross/build/mpy-cross game.py -o compiled/game.mpy
+        for file in components/*.py; do ./circuitpython/mpy-cross/build/mpy-cross -O3 "$file" -o "compiled/components/$(basename "$file" .py).mpy"; done
+        for file in utils/*.py; do ./circuitpython/mpy-cross/build/mpy-cross -O3 "$file" -o "compiled/utils/$(basename "$file" .py).mpy"; done
+        ./circuitpython/mpy-cross/build/mpy-cross -O3 game.py -o compiled/game.mpy
 
     - name: Copy images folder
       run: |
