@@ -2,6 +2,9 @@
 
 Welcome to the Checkout Challenge, a high-speed racing game developed in CircuitPython for the Adafruit PyBadge. In this game, you can race different types of trolleys, upgrade them, and compete to win prizes. This README will guide you through the setup, controls, and gameplay mechanics. Inspired by popular racing video games, this game puts a fun twist on everyday shopping by turning it into a thrilling racing experience.
 
+You can see a full write-up here at my Hackster page: [Checkout Challenge](https://www.hackster.io/314reactor/checkout-challenge-4d60a3) 
+and my Electromaker page: [Checkout Challenge](https://www.electromaker.io/profile/314Reactor)
+
 ![Game Logo](docs/images/title.png)
 
 ## Table of Contents
@@ -180,7 +183,7 @@ The Adafruit PyBadge features 5 LEDs that provide visual feedback on your race p
 - **Green LEDs**: The first three LEDs light up green from left to right, indicating the progress of the race.
 - **Red LEDs**: The final two LEDs light up red.
   - **Second Last Red LED**: Lights up when the race is coming to an end, giving you a heads-up to make a final push.
-  - **Final Red LED**: Stays lit during the last 10 seconds of the race to help you time your final maneuvers.
+  - **Final Red LED**: Stays lit during the last 10 seconds of the race to help you time your final manoeuvres.
 
 This LED system helps you keep track of how much time is left, giving you an idea of when to push forward to get ahead of the AI trolley.
 
