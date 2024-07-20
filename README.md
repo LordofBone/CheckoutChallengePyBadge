@@ -1,6 +1,9 @@
 # Checkout Challenge
 
-Welcome to the Checkout Challenge, a high-speed racing game developed in CircuitPython for the Adafruit PyBadge. In this game, you can race different types of trolleys, upgrade them, and compete to win prizes. This README will guide you through the setup, controls, and gameplay mechanics. Inspired by popular racing video games, this game puts a fun twist on everyday shopping by turning it into a thrilling racing experience.
+Welcome to Checkout Challenge, a high-speed racing game developed in CircuitPython for the Adafruit PyBadge. In this game, you can race different types of trolleys, upgrade them, and compete to win prizes. This README will guide you through the setup, controls, and gameplay mechanics. Inspired by popular racing video games, this game puts a fun twist on everyday shopping by turning it into a thrilling racing experience.
+
+You can see a full write-up here at my [Hackster page](https://www.hackster.io/314reactor/checkout-challenge-4d60a3) 
+and my [Electromaker page](https://www.electromaker.io/profile/314Reactor)
 
 ![Game Logo](docs/images/title.png)
 
@@ -61,7 +64,7 @@ There are four types of trolleys available, each with unique stats:
 
 ![basic_trolley](docs/images/basic_trolley.png)
 
-1. **CartMaster 1000** by **BudgetMart**: A standard trolley for everyday shopping needs. Costs $100 and has basic movement but can be upgraded to become quite fast and maneuverable. It has a max health of 120, weight of 36, speed of 1.8, acceleration of 0.5, deceleration of 0.35, grip of 0.2, boost strength of 1.5, and brake strength of 1.4.
+1. **CartMaster 1000** by **BudgetMart**: A standard trolley for everyday shopping needs. Costs $100 and has basic movement but can be upgraded to become quite fast and manoeuvrable. It has a max health of 120, weight of 36, speed of 1.8, acceleration of 0.5, deceleration of 0.35, grip of 0.2, boost strength of 1.5, and brake strength of 1.4.
 
 ![sports_trolley](docs/images/sports_trolley.png)
 
@@ -180,7 +183,7 @@ The Adafruit PyBadge features 5 LEDs that provide visual feedback on your race p
 - **Green LEDs**: The first three LEDs light up green from left to right, indicating the progress of the race.
 - **Red LEDs**: The final two LEDs light up red.
   - **Second Last Red LED**: Lights up when the race is coming to an end, giving you a heads-up to make a final push.
-  - **Final Red LED**: Stays lit during the last 10 seconds of the race to help you time your final maneuvers.
+  - **Final Red LED**: Stays lit during the last 10 seconds of the race to help you time your final manoeuvres.
 
 This LED system helps you keep track of how much time is left, giving you an idea of when to push forward to get ahead of the AI trolley.
 
@@ -191,6 +194,9 @@ The sprite sheet is made by me using a sprite pixel editor, while the background
 - I will likely move this to work on normal Python and Pygame, as the PyBadge is somewhat limited in terms of performance. This would also allow the game to run on any computer.
 - I plan to add more trolleys and upgrades, as well as more obstacles and tracks.
 - I will include per-pixel effects such as smoke and sparks when the trolley is damaged, as well as a general shine effect to menus and the trolleys. (The PyBadge doesn't have enough memory or CPU to do this currently).
+
+## Contributing
+Feel free to fork this repository, create a branch, and submit a pull request. We appreciate your contributions!
 
 ## License
 This project is licensed under the GNU GENERAL PUBLIC LICENSE. See the [LICENSE](LICENSE) file for details.
