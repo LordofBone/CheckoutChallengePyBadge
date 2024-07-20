@@ -195,5 +195,8 @@ The sprite sheet is made by me using a sprite pixel editor, while the background
 - I plan to add more trolleys and upgrades, as well as more obstacles and tracks.
 - I will include per-pixel effects such as smoke and sparks when the trolley is damaged, as well as a general shine effect to menus and the trolleys. (The PyBadge doesn't have enough memory or CPU to do this currently).
 
+## Contributing
+Feel free to fork this repository, create a branch, and submit a pull request. We appreciate your contributions!
+
 ## License
 This project is licensed under the GNU GENERAL PUBLIC LICENSE. See the [LICENSE](LICENSE) file for details.
