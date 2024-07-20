@@ -64,7 +64,7 @@ There are four types of trolleys available, each with unique stats:
 
 ![basic_trolley](docs/images/basic_trolley.png)
 
-1. **CartMaster 1000** by **BudgetMart**: A standard trolley for everyday shopping needs. Costs $100 and has basic movement but can be upgraded to become quite fast and maneuverable. It has a max health of 120, weight of 36, speed of 1.8, acceleration of 0.5, deceleration of 0.35, grip of 0.2, boost strength of 1.5, and brake strength of 1.4.
+1. **CartMaster 1000** by **BudgetMart**: A standard trolley for everyday shopping needs. Costs $100 and has basic movement but can be upgraded to become quite fast and manoeuvrable. It has a max health of 120, weight of 36, speed of 1.8, acceleration of 0.5, deceleration of 0.35, grip of 0.2, boost strength of 1.5, and brake strength of 1.4.
 
 ![sports_trolley](docs/images/sports_trolley.png)
 
