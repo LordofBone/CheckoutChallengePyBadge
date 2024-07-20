@@ -2,8 +2,8 @@
 
 Welcome to the Checkout Challenge, a high-speed racing game developed in CircuitPython for the Adafruit PyBadge. In this game, you can race different types of trolleys, upgrade them, and compete to win prizes. This README will guide you through the setup, controls, and gameplay mechanics. Inspired by popular racing video games, this game puts a fun twist on everyday shopping by turning it into a thrilling racing experience.
 
-You can see a full write-up here at my Hackster page: [Checkout Challenge](https://www.hackster.io/314reactor/checkout-challenge-4d60a3) 
-and my Electromaker page: [Checkout Challenge](https://www.electromaker.io/profile/314Reactor)
+You can see a full write-up here at my [Hackster page](https://www.hackster.io/314reactor/checkout-challenge-4d60a3) 
+and my [Electromaker page](https://www.electromaker.io/profile/314Reactor)
 
 ![Game Logo](docs/images/title.png)
 
