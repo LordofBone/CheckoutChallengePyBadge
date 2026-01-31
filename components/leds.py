@@ -8,6 +8,8 @@ class LEDController:
         self.led_count = led_count
         pybadger.pixels.brightness = brightness
         self.current_colors = [(0, 0, 0)] * led_count  # To store the current colors of the LEDs
+        # Pre-calculate color values for each LED position to avoid repeated calculations
+        self.color_cache = {}
         cleanup()
 
     def set_led_color(self, index, color):
@@ -38,9 +40,12 @@ class LEDController:
         ratio: float between 0 (green) and 1 (red)
         :return tuple (red, green, blue)
         """
-        green_value = int(max(0, 255 * (1 - ratio)))
-        red_value = int(max(0, 255 * ratio))
-        return red_value, green_value, 0
+        # Cache color calculations to avoid redundant computations
+        if ratio not in self.color_cache:
+            green_value = int(max(0, 255 * (1 - ratio)))
+            red_value = int(max(0, 255 * ratio))
+            self.color_cache[ratio] = (red_value, green_value, 0)
+        return self.color_cache[ratio]
 
     def update_progress(self, elapsed_time, total_duration):
         """

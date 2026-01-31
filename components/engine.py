@@ -53,6 +53,13 @@ class AIEngine:
 
         self.ai_trolley_obstacle_drag_speed_x = 3
         self.ai_trolley_obstacle_drag_speed_y = 5
+        
+        # Cache grip and physics calculations to avoid repeated expensive math operations
+        self.cached_grip = None
+        self.cached_acceleration = None
+        self.cached_deceleration = None
+        self.cached_trolley_weight = None
+        self.cached_trolley_grip = None
 
         cleanup()
 
@@ -154,12 +161,26 @@ class AIEngine:
             self.ai_last_move_time = current_time
 
         ai_trolley = self.ai_trolley
-        current_grip = ai_trolley.grip * (1 + log(1 + ai_trolley.weight))
-        max_grip_increase = ai_trolley.grip * 0.2
-        current_grip = min(ai_trolley.grip + max_grip_increase, current_grip)
-
-        acceleration = ai_trolley.acceleration / (1 + ai_trolley.weight * 0.1)
-        deceleration = ai_trolley.deceleration / (1 + max(0.9, ai_trolley.weight * 0.05))
+        
+        # Cache expensive grip calculations - only recalculate if trolley properties changed
+        if (self.cached_trolley_weight is None or self.cached_trolley_grip is None or
+            self.cached_trolley_weight != ai_trolley.weight or 
+            self.cached_trolley_grip != ai_trolley.grip):
+            self.cached_trolley_weight = ai_trolley.weight
+            self.cached_trolley_grip = ai_trolley.grip
+            
+            # Pre-calculate grip with logarithmic weight adjustment
+            grip_with_weight = ai_trolley.grip * (1 + log(1 + ai_trolley.weight))
+            max_grip_increase = ai_trolley.grip * 0.2
+            self.cached_grip = min(ai_trolley.grip + max_grip_increase, grip_with_weight)
+            
+            self.cached_acceleration = ai_trolley.acceleration / (1 + ai_trolley.weight * 0.1)
+            self.cached_deceleration = ai_trolley.deceleration / (1 + max(0.9, ai_trolley.weight * 0.05))
+        
+        # Use cached values for physics calculations
+        current_grip = self.cached_grip
+        acceleration = self.cached_acceleration
+        deceleration = self.cached_deceleration
 
         self.velocity_x *= self.smoothing_factor
         self.velocity_y *= self.smoothing_factor
@@ -263,6 +284,10 @@ class TrackGenerator:
             'Money': (Money, 0.05),
             'Person': (Person, 0.07),
         }
+        
+        # Pre-calculate obstacle options list and total weight to avoid repeated list() conversions
+        self.obstacle_options = list(self.obstacle_classes.items())
+        self.total_obstacle_weight = sum(weight for _, (_, weight) in self.obstacle_options)
 
         """Set parameters based on the selected difficulty level."""
         if self.difficulty == 'easy':
@@ -352,17 +377,13 @@ class TrackGenerator:
                     new_x = randint(0, 160 - 16)
                     new_y = randint(-256, 0)
 
-                    options = list(self.obstacle_classes.items())
-
-                    # Sum the weights to get the total weight.
-                    total = sum(weight for _, (_, weight) in options)
-
+                    # Use pre-calculated options and total weight
                     # Generate a random number between 0 and the total weight.
-                    r = uniform(0, total)
+                    r = uniform(0, self.total_obstacle_weight)
                     # Initialize the cumulative weight.
                     upto = 0
                     # Iterate over the options.
-                    for item, (cls, weight) in options:
+                    for item, (cls, weight) in self.obstacle_options:
                         upto += weight
                         # Check if the random number is less than the current cumulative weight.
                         if upto >= r:
@@ -716,6 +737,11 @@ class RaceEngine(BaseMenu):
 
         self.last_move_time = monotonic()
         self.last_damage_time = self.last_move_time
+        
+        # Cache player trolley physics calculations to avoid repeated expensive operations
+        self.cached_player_grip = None
+        self.cached_player_weight = None
+        self.cached_player_grip_base = None
 
         cleanup()
 
@@ -777,15 +803,25 @@ class RaceEngine(BaseMenu):
                 # 3. Update trolley position based on control input and grip
                 # Time check to control movement updates
                 if self.current_time - self.last_move_time > self.move_interval:
-                    # Calculate the grip increase based on weight using log
-                    grip_increase = self.player_trolley.grip * log(1 + self.player_trolley.weight)
+                    # Cache expensive grip calculations - only recalculate if trolley properties changed
+                    if (self.cached_player_weight is None or self.cached_player_grip_base is None or
+                        self.cached_player_weight != self.player_trolley.weight or 
+                        self.cached_player_grip_base != self.player_trolley.grip):
+                        self.cached_player_weight = self.player_trolley.weight
+                        self.cached_player_grip_base = self.player_trolley.grip
+                        
+                        # Calculate the grip increase based on weight using log
+                        grip_increase = self.player_trolley.grip * log(1 + self.player_trolley.weight)
 
-                    # Cap the grip increase to ensure it doesn't exceed the maximum allowed grip
-                    max_grip_increase = self.player_trolley.grip * (self.max_grip_multiplier - 1)
-                    limited_grip_increase = min(grip_increase, max_grip_increase)
+                        # Cap the grip increase to ensure it doesn't exceed the maximum allowed grip
+                        max_grip_increase = self.player_trolley.grip * (self.max_grip_multiplier - 1)
+                        limited_grip_increase = min(grip_increase, max_grip_increase)
 
-                    # Calculate the final grip
-                    current_grip = (self.player_trolley.grip + limited_grip_increase) * self.grip_factor
+                        # Cache the base grip calculation (before grip_factor)
+                        self.cached_player_grip = self.player_trolley.grip + limited_grip_increase
+                    
+                    # Calculate the final grip with current grip_factor
+                    current_grip = self.cached_player_grip * self.grip_factor
 
                     # Adjust boost and brake factors incrementally for smooth changes
                     if self.app.controls.a_button():

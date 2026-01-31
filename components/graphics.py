@@ -103,6 +103,11 @@ class SpriteExtractor:
         self.columns = columns
         self.rows = rows
         self.sprites = self.load_sprites()
+        
+        # Cache for generated sprites with shadows/palettes to avoid regeneration
+        self.sprite_cache = {}
+        # Cache for palettes by color_shift to avoid redundant palette creation
+        self.palette_cache = {}
 
         # x, y position of each sprite in the sprite sheet
         self.sprite_matrix = {
@@ -193,15 +198,37 @@ class SpriteExtractor:
         :param color_shift:
         :return:
         """
+        # Create cache key for this specific sprite configuration
+        cache_key = (name, pixel_shadow, shadow_angle, shadow_strength, 
+                    transparent_background, background_color, shadow_color, color_shift)
+        
+        # Return cached sprite if it exists
+        if cache_key in self.sprite_cache:
+            cached_sprite = self.sprite_cache[cache_key]
+            # Return a new instance with the same bitmap and palette
+            return self.CustomTileGrid(cached_sprite.bitmap, pixel_shader=cached_sprite.pixel_shader,
+                                      width=1, height=1,
+                                      tile_width=cached_sprite.tile_width, 
+                                      tile_height=cached_sprite.tile_height,
+                                      default_tile=cached_sprite[0], icon=True)
+        
         column, row = self.sprite_matrix[name]
         original_sprite = self.sprites[row][column]
 
-        # Define a new palette for the AI trolley to differentiate it
-        alternate_palette = display_palette(len(original_sprite.pixel_shader))
-        for i in range(len(alternate_palette)):
-            original_color = original_sprite.pixel_shader[i]
-            # Change the color slightly to differentiate the AI trolley
-            alternate_palette[i] = self.adjust_color(original_color, color_shift)
+        # Check palette cache first
+        if color_shift in self.palette_cache:
+            alternate_palette = self.palette_cache[color_shift]
+        else:
+            # Define a new palette for the AI trolley to differentiate it
+            palette_len = len(original_sprite.pixel_shader)
+            alternate_palette = display_palette(palette_len)
+            for i in range(palette_len):
+                original_color = original_sprite.pixel_shader[i]
+                # Change the color slightly to differentiate the AI trolley
+                alternate_palette[i] = self.adjust_color(original_color, color_shift)
+            # Cache the palette for reuse
+            if color_shift != (0, 0, 0):  # Only cache non-default palettes
+                self.palette_cache[color_shift] = alternate_palette
 
         if pixel_shadow:
             # Calculate shadow offsets based on the angle and strength (WiP) it works with basic shadows,
@@ -220,33 +247,42 @@ class SpriteExtractor:
             expanded_height = self.sprite_height + abs(shadow_offset_y)
 
             # Adjust the number of colors to include the shadow color
-            num_colors = len(alternate_palette) + 1
+            palette_len = len(alternate_palette)
+            num_colors = palette_len + 1
             combined_bitmap = display_bitmap(expanded_width, expanded_height, num_colors)
             combined_palette = display_palette(num_colors)
 
             # Copy original palette colors and add shadow color
-            for i in range(len(alternate_palette)):
+            for i in range(palette_len):
                 combined_palette[i] = alternate_palette[i]
             if transparent_background:
                 combined_palette.make_transparent(0)
             else:
                 combined_palette[0] = background_color
-            shadow_color_index = len(alternate_palette)
+            shadow_color_index = palette_len
             combined_palette[shadow_color_index] = shadow_color
 
+            # Optimized shadow generation with pre-calculated bounds
+            col_offset = column * self.sprite_width
+            row_offset = row * self.sprite_height
+            max_shadow_x = expanded_width - 1
+            max_shadow_y = expanded_height - 1
+            
             # Iterate through the original sprite's pixels to draw it and its shadow
             for y in range(self.sprite_height):
+                row_offset_y = row_offset + y
+                shadow_y = y + shadow_offset_y
+                shadow_y_valid = 0 <= shadow_y <= max_shadow_y
                 for x in range(self.sprite_width):
-                    original_index = original_sprite.bitmap[
-                        (column * self.sprite_width) + x, (row * self.sprite_height) + y]
-                    if original_index != 0:  # If the pixel is not transparent
+                    original_index = original_sprite.bitmap[col_offset + x, row_offset_y]
+                    if original_index:  # If the pixel is not transparent
                         # Draw the original sprite pixel
                         combined_bitmap[x, y] = original_index
                         # Draw the shadow pixel, offset by the shadow's x and y offsets
-                        shadow_x = x + shadow_offset_x
-                        shadow_y = y + shadow_offset_y
-                        if 0 <= shadow_x < expanded_width and 0 <= shadow_y < expanded_height:
-                            combined_bitmap[shadow_x, shadow_y] = shadow_color_index
+                        if shadow_y_valid:
+                            shadow_x = x + shadow_offset_x
+                            if 0 <= shadow_x <= max_shadow_x:
+                                combined_bitmap[shadow_x, shadow_y] = shadow_color_index
 
             new_sprite = self.CustomTileGrid(combined_bitmap, pixel_shader=combined_palette,
                                              width=1, height=1,
@@ -257,10 +293,10 @@ class SpriteExtractor:
                 alternate_palette.make_transparent(0)
                 modified_palette = alternate_palette
             else:
-                num_colors = len(alternate_palette)
-                modified_palette = display_palette(num_colors)
+                palette_len = len(alternate_palette)
+                modified_palette = display_palette(palette_len)
 
-                for i in range(len(alternate_palette)):
+                for i in range(palette_len):
                     modified_palette[i] = alternate_palette[i]
                 if transparent_background:
                     modified_palette.make_transparent(0)
@@ -272,6 +308,11 @@ class SpriteExtractor:
                                              width=1, height=1,
                                              tile_width=self.sprite_width, tile_height=self.sprite_height,
                                              default_tile=(row * self.columns + column), icon=True)
+        
+        # Cache the generated sprite for future reuse (limit cache size to avoid memory issues)
+        if len(self.sprite_cache) < 50:  # Limit cache size for PyBadge memory constraints
+            self.sprite_cache[cache_key] = new_sprite
+        
         return new_sprite
 
 
