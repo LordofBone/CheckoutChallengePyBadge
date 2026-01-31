@@ -53,6 +53,13 @@ class AIEngine:
 
         self.ai_trolley_obstacle_drag_speed_x = 3
         self.ai_trolley_obstacle_drag_speed_y = 5
+        
+        # Cache grip and physics calculations to avoid repeated expensive math operations
+        self.cached_grip = None
+        self.cached_acceleration = None
+        self.cached_deceleration = None
+        self.cached_trolley_weight = None
+        self.cached_trolley_grip = None
 
         cleanup()
 
@@ -154,12 +161,25 @@ class AIEngine:
             self.ai_last_move_time = current_time
 
         ai_trolley = self.ai_trolley
-        current_grip = ai_trolley.grip * (1 + log(1 + ai_trolley.weight))
-        max_grip_increase = ai_trolley.grip * 0.2
-        current_grip = min(ai_trolley.grip + max_grip_increase, current_grip)
-
-        acceleration = ai_trolley.acceleration / (1 + ai_trolley.weight * 0.1)
-        deceleration = ai_trolley.deceleration / (1 + max(0.9, ai_trolley.weight * 0.05))
+        
+        # Cache expensive grip calculations - only recalculate if trolley properties changed
+        if (self.cached_trolley_weight != ai_trolley.weight or 
+            self.cached_trolley_grip != ai_trolley.grip):
+            self.cached_trolley_weight = ai_trolley.weight
+            self.cached_trolley_grip = ai_trolley.grip
+            
+            # Pre-calculate grip with logarithmic weight adjustment
+            grip_with_weight = ai_trolley.grip * (1 + log(1 + ai_trolley.weight))
+            max_grip_increase = ai_trolley.grip * 0.2
+            self.cached_grip = min(ai_trolley.grip + max_grip_increase, grip_with_weight)
+            
+            self.cached_acceleration = ai_trolley.acceleration / (1 + ai_trolley.weight * 0.1)
+            self.cached_deceleration = ai_trolley.deceleration / (1 + max(0.9, ai_trolley.weight * 0.05))
+        
+        # Use cached values for physics calculations
+        current_grip = self.cached_grip
+        acceleration = self.cached_acceleration
+        deceleration = self.cached_deceleration
 
         self.velocity_x *= self.smoothing_factor
         self.velocity_y *= self.smoothing_factor
@@ -263,6 +283,10 @@ class TrackGenerator:
             'Money': (Money, 0.05),
             'Person': (Person, 0.07),
         }
+        
+        # Pre-calculate obstacle options list and total weight to avoid repeated list() conversions
+        self.obstacle_options = list(self.obstacle_classes.items())
+        self.total_obstacle_weight = sum(weight for _, (_, weight) in self.obstacle_options)
 
         """Set parameters based on the selected difficulty level."""
         if self.difficulty == 'easy':
@@ -352,17 +376,13 @@ class TrackGenerator:
                     new_x = randint(0, 160 - 16)
                     new_y = randint(-256, 0)
 
-                    options = list(self.obstacle_classes.items())
-
-                    # Sum the weights to get the total weight.
-                    total = sum(weight for _, (_, weight) in options)
-
+                    # Use pre-calculated options and total weight
                     # Generate a random number between 0 and the total weight.
-                    r = uniform(0, total)
+                    r = uniform(0, self.total_obstacle_weight)
                     # Initialize the cumulative weight.
                     upto = 0
                     # Iterate over the options.
-                    for item, (cls, weight) in options:
+                    for item, (cls, weight) in self.obstacle_options:
                         upto += weight
                         # Check if the random number is less than the current cumulative weight.
                         if upto >= r:

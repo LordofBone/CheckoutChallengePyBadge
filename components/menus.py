@@ -96,14 +96,14 @@ class BaseMenu:
             if self.check_inputs():
                 return
 
-            # Get the list of dictionary keys
-            visible_keys = list(options_dict.keys())
+            # Use tuple instead of list for memory efficiency (immutable, smaller overhead)
+            visible_keys = tuple(options_dict.keys())
 
-            existing_keys = list(self.labels.keys())
+            existing_keys = tuple(self.labels.keys())
 
             order_difference = any(x != y for x, y in zip(visible_keys, existing_keys))
 
-            if order_difference or existing_keys == []:
+            if order_difference or len(existing_keys) == 0:
                 self.cleanup_labels_sprites()
                 menu_diff = True
             else:
