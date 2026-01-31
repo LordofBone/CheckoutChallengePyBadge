@@ -275,7 +275,7 @@ class SpriteExtractor:
                 shadow_y_valid = 0 <= shadow_y <= max_shadow_y
                 for x in range(self.sprite_width):
                     original_index = original_sprite.bitmap[col_offset + x, row_offset_y]
-                    if original_index:  # If the pixel is not transparent (faster than != 0)
+                    if original_index:  # If the pixel is not transparent
                         # Draw the original sprite pixel
                         combined_bitmap[x, y] = original_index
                         # Draw the shadow pixel, offset by the shadow's x and y offsets

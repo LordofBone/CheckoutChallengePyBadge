@@ -163,7 +163,8 @@ class AIEngine:
         ai_trolley = self.ai_trolley
         
         # Cache expensive grip calculations - only recalculate if trolley properties changed
-        if (self.cached_trolley_weight != ai_trolley.weight or 
+        if (self.cached_trolley_weight is None or self.cached_trolley_grip is None or
+            self.cached_trolley_weight != ai_trolley.weight or 
             self.cached_trolley_grip != ai_trolley.grip):
             self.cached_trolley_weight = ai_trolley.weight
             self.cached_trolley_grip = ai_trolley.grip
@@ -803,7 +804,8 @@ class RaceEngine(BaseMenu):
                 # Time check to control movement updates
                 if self.current_time - self.last_move_time > self.move_interval:
                     # Cache expensive grip calculations - only recalculate if trolley properties changed
-                    if (self.cached_player_weight != self.player_trolley.weight or 
+                    if (self.cached_player_weight is None or self.cached_player_grip_base is None or
+                        self.cached_player_weight != self.player_trolley.weight or 
                         self.cached_player_grip_base != self.player_trolley.grip):
                         self.cached_player_weight = self.player_trolley.weight
                         self.cached_player_grip_base = self.player_trolley.grip
